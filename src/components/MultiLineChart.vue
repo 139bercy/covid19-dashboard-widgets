@@ -1,20 +1,24 @@
 <template>
 
   <div class="widget_container fr-grid-row" :class="(loading)?'loading':''" :data-display="display" :id="widgetId">
-    <LeftCol :props="leftColProps"></LeftCol>
-    <div class="r_col fr-col-12 fr-col-lg-9">
+    <LineCol v-bind="leftColProps" v-if="topCol"></LineCol>
+    <LeftCol v-bind="leftColProps" v-if="leftCol || leftCol === undefined"></LeftCol>
+    <div class="r_col fr-col-12" :class="{'fr-col-lg-9': leftCol || leftCol === undefined}">
       <div class="chart ml-lg">
         <canvas :id="chartId"></canvas>
-        <div class="flex fr-mt-3v fr-mb-1v" :style="style">
-          <span class="legende_dot"></span>
-          <p class="fr-text--sm fr-text--bold fr-ml-1v fr-mb-0">{{capitalize(units[0])}}</p>
-        </div>
-        <div class="flex" :style="style">
-          <span class="legende_dot" data-serie="2"></span>
-          <p class="fr-text--sm fr-text--bold fr-ml-1v fr-mb-0">{{capitalize(units[1])}}</p>
+        <div class="fr-col-12 fr-grid-row">
+          <div class="flex fr-col-6" :style="style" v-if="units[0]">
+            <span class="legende_dot"></span>
+            <span class="fr-text--sm fr-text--bold fr-ml-1v fr-mb-0">{{ capitalize(units[0]) }}</span>
+          </div>
+          <div class="flex fr-col-6" :style="style" v-if="units[1]">
+            <span class="legende_dot" data-serie="2"></span>
+            <span class="fr-text--sm fr-text--bold fr-ml-1v fr-mb-0">{{ capitalize(units[1]) }}</span>
+          </div>
         </div>
       </div>
     </div>
+    <LineCol v-bind="leftColProps" v-if="bottomCol"></LineCol>
   </div>
 </template>
 
@@ -22,12 +26,14 @@
 import store from '@/store'
 import Chart from 'chart.js'
 import LeftCol from '@/components/LeftCol'
+import LineCol from '@/components/LineCol'
 import { mixin } from '@/utils.js'
 
 export default {
   name: 'MultiLineChart',
   components: {
-    LeftCol
+    LeftCol,
+    LineCol
   },
   mixins: [mixin],
   data () {
@@ -58,7 +64,11 @@ export default {
   },
   props: {
     indicateur1: String,
-    indicateur2: String
+    indicateur2: String,
+    interpolation: String,
+    topCol: Boolean,
+    leftCol: Boolean,
+    bottomCol: Boolean
   },
   computed: {
     selectedGeoLevel () {
@@ -71,7 +81,7 @@ export default {
       return store.state.user.selectedGeoLabel
     },
     style () {
-      return 'margin-left: ' + this.legendLeftMargin + 'px'
+      return this.leftCol || this.leftCol === undefined ? 'margin-left: ' + this.legendLeftMargin + 'px' : ''
     }
 
   },
@@ -141,8 +151,9 @@ export default {
         const correspondingValue = geoObject2.values.find(obj => {
           return obj.date === d.date
         })
-
-        self.dataset2.push(correspondingValue.value)
+        if (correspondingValue) {
+          self.dataset2.push(correspondingValue.value)
+        }
       })
     },
 
@@ -184,6 +195,7 @@ export default {
               backgroundColor: gradientFill,
               borderColor: '#000091',
               type: 'line',
+              cubicInterpolationMode: this.interpolation || 'default',
               pointRadius: 8,
               pointBackgroundColor: 'rgba(0, 0, 0, 0)',
               pointBorderColor: 'rgba(0, 0, 0, 0)'
@@ -193,6 +205,7 @@ export default {
               backgroundColor: gradientFill2,
               borderColor: '#007c3a',
               type: 'line',
+              cubicInterpolationMode: this.interpolation || 'default',
               pointRadius: 8,
               pointBackgroundColor: 'rgba(0, 0, 0, 0)',
               pointBorderColor: 'rgba(0, 0, 0, 0)'
@@ -280,42 +293,47 @@ export default {
 
 <style scoped lang="scss">
 
-  .widget_container{
+.widget_container {
+  .ml-lg {
+    margin-left: 0;
+  }
+
+  @media (min-width: 62em) {
     .ml-lg {
-      margin-left:0;
+      margin-left: 3rem;
     }
-    @media (min-width: 62em) {
-      .ml-lg {
-        margin-left:3rem;
-      }
+  }
+  @media (max-width: 62em) {
+    .chart .flex {
+      margin-left: 0 !important
     }
-    @media (max-width: 62em) {
-      .chart .flex {
-        margin-left:0!important
-      }
-    }
-    .r_col {
-      align-self:center;
-      .flex{
-        display: flex;
-        .legende_dot{
-          width: 1rem;
-          height: 1rem;
-          border-radius: 50%;
-          background-color: #000091;
-          display: inline-block;
-          margin-top: 0.25rem;
-          &[data-serie="2"]{
-            background-color: #007c3a;
-          }
+  }
+
+  .r_col {
+    align-self: center;
+
+    .flex {
+      display: flex;
+
+      .legende_dot {
+        width: 1rem;
+        height: 1rem;
+        border-radius: 50%;
+        background-color: #000091;
+        display: inline-block;
+        margin-top: 0.25rem;
+
+        &[data-serie="2"] {
+          background-color: #007c3a;
         }
       }
     }
-
-    .chart canvas {
-      max-width:100%;
-    }
-
   }
+
+  .chart canvas {
+    max-width: 100%;
+  }
+
+}
 
 </style>
