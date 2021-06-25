@@ -98,7 +98,7 @@ export default {
   },
 
   watch: {
-    props: {
+    names: {
       handler () {
         this.testEvolStyle()
       },
