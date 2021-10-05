@@ -9,6 +9,8 @@
         </p>
     </div>
     <LeftCol :data-display="display" :props="leftColProps"></LeftCol>
+    <LineCol v-bind="leftColProps" v-if="topCol"></LineCol>
+    <LeftCol v-bind="leftColProps" v-if="leftCol || leftCol === undefined"></LeftCol>
     <div class="r_col fr-col-12 fr-col-lg-9">
       <div class="chart ml-lg">
         <canvas :id="chartId"></canvas>
@@ -18,6 +20,7 @@
         </div>
       </div>
     </div>
+    <LineCol v-bind="leftColProps" v-if="bottomCol"></LineCol>
   </div>
 </template>
 
@@ -25,12 +28,14 @@
 import store from '@/store'
 import Chart from 'chart.js'
 import LeftCol from '@/components/LeftCol'
+import LineCol from '@/components/LineCol'
 import { mixin } from '@/utils.js'
 export default {
   name: 'BarChart',
   mixins: [mixin],
   components: {
-    LeftCol
+    LeftCol,
+    LineCol
   },
   data () {
     return {
@@ -59,7 +64,10 @@ export default {
     }
   },
   props: {
-    indicateur: String
+    indicateur: String,
+    topCol: Boolean,
+    leftCol: Boolean,
+    bottomCol: Boolean
   },
   computed: {
     selectedGeoLevel () {

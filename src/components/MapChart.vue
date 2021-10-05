@@ -1,8 +1,9 @@
 <template>
 
   <div class="widget_container fr-grid-row" :class="(loading)?'loading':''" :data-display="display" :id="widgetId">
-    <LeftCol :props="leftColProps"></LeftCol>
-    <div class="r_col fr-col-12 fr-col-lg-9">
+    <LineCol :props="leftColProps" v-if="topCol"></LineCol>
+    <LeftCol :props="leftColProps" v-if="leftCol || leftCol === undefined"></LeftCol>
+    <div class="r_col fr-col-12" :class="{'fr-col-lg-9': leftCol || leftCol === undefined}">
       <div class="map m-lg">
         <div class="map_tooltip" v-if="tooltip.display" :style="{top:tooltip.top,left:tooltip.left}">
           <div class="tooltip_header">{{convertDateToHuman(tooltip.date)}}</div>
@@ -38,12 +39,14 @@
         </div>
       </div>
     </div>
+    <LineCol :props="leftColProps" v-if="bottomCol"></LineCol>
   </div>
 </template>
 
 <script>
 import store from '@/store'
 import LeftCol from '@/components/LeftCol'
+import LineCol from '@/components/LineCol'
 import maps from '@/components/maps'
 import * as d3 from 'd3-scale'
 import { isMobile } from 'mobile-device-detect'
@@ -54,6 +57,7 @@ export default {
   mixins: [mixin],
   components: {
     LeftCol,
+    LineCol,
     ...maps
   },
   data () {
@@ -95,7 +99,10 @@ export default {
     }
   },
   props: {
-    indicateur: String
+    indicateur: String,
+    topCol: Boolean,
+    leftCol: Boolean,
+    bottomCol: Boolean
   },
   computed: {
     selectedGeoLevel () {

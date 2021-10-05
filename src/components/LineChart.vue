@@ -8,8 +8,9 @@
         <p class="fr-text--sm fr-mb-0 fr-p-3v">{{geoFallbackMsg}}
         </p>
     </div>
-    <LeftCol :props="leftColProps"></LeftCol>
-    <div class="r_col fr-col-12 fr-col-lg-9">
+    <LineCol v-bind="leftColProps" v-if="topCol"></LineCol>
+    <LeftCol v-bind="leftColProps" v-if="leftCol || leftCol === undefined"></LeftCol>
+    <div class="r_col fr-col-12" :class="{'fr-col-lg-9': leftCol || leftCol === undefined}">
       <div class="chart ml-lg">
         <canvas :id="chartId"></canvas>
         <div class="flex fr-mt-3v" :style="style">
@@ -18,6 +19,7 @@
         </div>
       </div>
     </div>
+    <LineCol v-bind="leftColProps" v-if="bottomCol"></LineCol>
   </div>
 </template>
 
@@ -25,12 +27,14 @@
 import store from '@/store'
 import Chart from 'chart.js'
 import LeftCol from '@/components/LeftCol'
+import LineCol from '@/components/LineCol'
 import { mixin } from '@/utils.js'
 
 export default {
   name: 'LineChart',
   components: {
-    LeftCol
+    LeftCol,
+    LineCol
   },
   mixins: [mixin],
   data () {
@@ -60,7 +64,11 @@ export default {
     }
   },
   props: {
-    indicateur: String
+    indicateur: String,
+    interpolation: String,
+    topCol: Boolean,
+    leftCol: Boolean,
+    bottomCol: Boolean
   },
   computed: {
     selectedGeoLevel () {
@@ -184,6 +192,7 @@ export default {
             backgroundColor: gradientFill,
             borderColor: '#000091',
             type: 'line',
+            cubicInterpolationMode: this.interpolation || 'default',
             pointRadius: 8,
             pointBackgroundColor: 'rgba(0, 0, 0, 0)',
             pointBorderColor: 'rgba(0, 0, 0, 0)'
